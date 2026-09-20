@@ -1,10 +1,10 @@
-ATtiny project to control fan speed with a button
+a tiny Arduino sketch for the ATtiny to control a PWM fan's speed with an intuitive 1-button interface
 
----
+## Arduino IDE setup
 
 Info for setting up the ATtiny in Arduino IDE can be found here https://highlowtech.org/?p=1695
 
----
+## Arduino CLI setup
 
 If you're using arduino-cli you can add an entry to your config file at `~/.arduino15/arduino-cli.yaml`  
 ```yaml
