@@ -6,7 +6,7 @@ float speed = 0.5;
 int dir = -1;
 
 unsigned long timer = 0;
-bool isPressed = 0;
+bool isHeld = 0;
 
 void setup() {
   timer = millis();
@@ -41,7 +41,7 @@ void loop() {
   while(digitalRead(BUTTON_PIN)==1){}; //button is not pressed 
   delay(20); //debounce
   while(digitalRead(BUTTON_PIN)==0){ //button is pressed
-    if(millis()-timer < 300 && isPressed==0){ //detect a double click
+    if(millis()-timer < 300 && isHeld==0){ //detect a double click
       speed = 1.0;
       setFanSpeed(speed);
       dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed
@@ -50,9 +50,9 @@ void loop() {
       timer = millis();
       break;
     }
-    if(isPressed == 0){ //these things only happen once, as soon as the button is pressed (but not doubleclicked)
+    if(isHeld == 0){ //these things only happen once, as soon as the button is pressed (but not doubleclicked)
       timer = millis();
-      isPressed = 1;
+      isHeld = 1;
       dir *= -1;
     }
     speed += (0.01 * dir); //if button is held, increment fan
@@ -65,7 +65,7 @@ void loop() {
     setFanSpeed(speed);
     delay(50); //speed ramp delay
   }
-  isPressed = 0; //reset button press flag
+  isHeld = 0;
 }
 
 void setFanSpeed(float pwm) {
