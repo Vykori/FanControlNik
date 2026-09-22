@@ -15,6 +15,7 @@ void setup() {
   digitalWrite(LED_PIN, HIGH);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
+  //next we need to change some register values so the PWM frequency we provide to the fan is the expected ~25kHz
   //bruh idk how any of this bullshit works lmao
   // --- Configure Timer 1 for 25kHz PWM on PB1 (Channel A) ---
   TCCR1 = 0; // Reset registers
@@ -40,25 +41,25 @@ void loop() {
   while(digitalRead(BUTTON_PIN)==1){}; //button is not pressed 
   delay(20); //debounce
   while(digitalRead(BUTTON_PIN)==0){ //button is pressed
-    if(millis()-timer < 300 && isPressed==0){//has it been less than 1/4 second since the button was last pressed? If so, this registers as a double click
+    if(millis()-timer < 300 && isPressed==0){ //detect a double click
       speed = 1.0;
-      dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed (since dir gets inverted on each press, it will be set to -1)
       setFanSpeed(speed);
+      dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed
       while(digitalRead(BUTTON_PIN) == 0){} //wait for button to be released
       delay(20); //debounce
-      timer = millis(); //update timer
-      break; //exit the "button hold" loop
+      timer = millis();
+      break;
     }
     if(isPressed == 0){ //these things only happen once, as soon as the button is pressed (but not doubleclicked)
       timer = millis();
       isPressed = 1;
-      dir *= -1; //invert direction
+      dir *= -1;
     }
     speed += (0.01 * dir); //if button is held, increment fan
-    if(speed > 1.0){ //cap fan speed at 100%
+    if(speed > 1.0){ 
       speed = 1.0;
     }
-    if(speed < min){ //fan speed cannot go below minimum
+    if(speed < min){
       speed = min;
     }
     setFanSpeed(speed);
