@@ -41,17 +41,7 @@ void loop() {
   while(digitalRead(BUTTON_PIN)==1){}; //button is not pressed 
   delay(20); //debounce
   while(digitalRead(BUTTON_PIN)==0){ //button is pressed
-    if(millis()-timer < 300 && isHeld==0){ //detect a double click
-      speed = 1.0;
-      setFanSpeed(speed);
-      dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed
-      while(digitalRead(BUTTON_PIN) == 0){} //wait for button to be released
-      delay(20); //debounce
-      timer = millis();
-      break;
-    }
-    if(isHeld == 0){ //these things only happen once, as soon as the button is pressed (but not doubleclicked)
-      timer = millis();
+    if(isHeld == 0){ //these things only happen once, as soon as the button is pressed
       isHeld = 1;
       dir *= -1;
     }
