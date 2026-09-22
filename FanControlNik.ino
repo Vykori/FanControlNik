@@ -40,7 +40,6 @@ void loop() {
   while(digitalRead(BUTTON_PIN)==1){}; //button is not pressed 
   delay(20); //debounce
   while(digitalRead(BUTTON_PIN)==0){ //button is pressed
-    delay(20); //debounce
     if(millis()-timer < 300 && isPressed==0){//has it been less than 1/4 second since the button was last pressed? If so, this registers as a double click
       speed = 1.0;
       dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed (since dir gets inverted on each press, it will be set to -1)
@@ -63,7 +62,7 @@ void loop() {
       speed = min;
     }
     setFanSpeed(speed);
-    delay(30); //speed ramp delay
+    delay(50); //speed ramp delay
   }
   isPressed = 0; //reset button press flag
 }
