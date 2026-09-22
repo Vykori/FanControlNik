@@ -1,9 +1,9 @@
 const int PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const int BUTTON_PIN = 2;
 const int LED_PIN = 0;
-float min = 0.28;
+float min = 0.1;
 float speed = 0.5;
-int dir = -1;
+int dir = 1;
 
 unsigned long timer = 0;
 bool isHeld = 0;
@@ -12,7 +12,7 @@ void setup() {
   timer = millis();
   pinMode(PWM_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
+  digitalWrite(LED_PIN, LOW);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   //next we need to change some register values so the PWM frequency we provide to the fan is the expected ~25kHz
