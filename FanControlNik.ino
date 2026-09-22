@@ -1,7 +1,7 @@
 const int PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const int BUTTON_PIN = 2;
-int min = 28;
-int fanSpeed = 50;
+float min = 0.28;
+float speed = 0.5;
 int dir = -1;
 
 unsigned long timer = 0;
@@ -29,19 +29,19 @@ void setup() {
   // 4. Initialize duty cycle to 0 (Off)
   OCR1A = 0; 
 
-  setFanSpeed(fanSpeed);  // Initialize the fan to the default speed
+  setFanSpeed(speed);  // Initialize the fan to the default speed
 }
 
 void loop() {
-  setFanSpeed(fanSpeed);
+  setFanSpeed(speed);
   while(digitalRead(BUTTON_PIN)==1){}; //button is not pressed 
   delay(20); //debounce
   while(digitalRead(BUTTON_PIN)==0){ //button is pressed
     delay(20); //debounce
     if(millis()-timer < 300 && isPressed==0){//has it been less than 1/4 second since the button was last pressed? If so, this registers as a double click
-      fanSpeed = 100;
+      speed = 1.0;
       dir = 1; //set direction to 1 so the next press-and-hold will reduce the fan speed (since dir gets inverted on each press, it will be set to -1)
-      setFanSpeed(fanSpeed);
+      setFanSpeed(speed);
       while(digitalRead(BUTTON_PIN) == 0){} //wait for button to be released
       delay(20); //debounce
       timer = millis(); //update timer
@@ -52,21 +52,21 @@ void loop() {
       isPressed = 1;
       dir *= -1; //invert direction
     }
-    fanSpeed += dir; //if button is held and not double-clicked, increment fan by "dir", either + or - 1
-    if(fanSpeed > 100){ //cap fan speed at 100%
-      fanSpeed = 100;
+    speed += (0.01 * dir); //if button is held, increment fan
+    if(speed > 1.0){ //cap fan speed at 100%
+      speed = 1.0;
     }
-    if(fanSpeed < min){ //fan speed cannot go below minimum
-      fanSpeed = min;
+    if(speed < min){ //fan speed cannot go below minimum
+      speed = min;
     }
-    setFanSpeed(fanSpeed);
+    setFanSpeed(speed);
     delay(30); //speed ramp delay
   }
   isPressed = 0; //reset button press flag
 }
 
-void setFanSpeed(int percent) {
-  percent = constrain(percent, 0, 100);
-  // Map 0-100% onto the 0 to 39 Timer range for OCR0B
-  OCR1A = (percent * 39) / 100;
+void setFanSpeed(float pwm) {
+  constrain(pwm, 0.0, 1.0);
+  // Map onto the 0 to 39 Timer range for OCR0B
+  OCR1A = (pwm * 39);
 }
