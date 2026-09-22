@@ -63,3 +63,17 @@ void setFanSpeed(float pwm) {
   // Map onto the 0 to 39 Timer range for OCR0B
   OCR1A = (pwm * 39);
 }
+
+void blinkLED(int number) { // used for debugging
+  delay(250);
+  for(int i = number; i > 0; i--) {
+    digitalWrite(LED_PIN, HIGH);
+    delay(125);
+    digitalWrite(LED_PIN, LOW);
+    delay(125);
+  }
+  delay(250);
+  digitalWrite(LED_PIN, HIGH);
+  delay(50);
+  digitalWrite(LED_PIN, LOW);
+}
