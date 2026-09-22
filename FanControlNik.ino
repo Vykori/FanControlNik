@@ -1,5 +1,6 @@
 const int PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const int BUTTON_PIN = 2;
+const int LED_PIN = 0;
 float min = 0.28;
 float speed = 0.5;
 int dir = -1;
@@ -10,6 +11,8 @@ bool isPressed = 0;
 void setup() {
   timer = millis();
   pinMode(PWM_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   //bruh idk how any of this bullshit works lmao
