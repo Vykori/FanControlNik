@@ -99,7 +99,7 @@ void blinkLED(uint8_t number) { // used for debugging
   digitalWrite(LED_PIN, LOW);
   delay(250);
   delay(125);
-  for(int i = number; i > 0; i--) {
+  for(; number > 0; number--) {
     digitalWrite(LED_PIN, HIGH);
     delay(125);
     digitalWrite(LED_PIN, LOW);
