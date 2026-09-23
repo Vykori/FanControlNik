@@ -6,10 +6,6 @@ uint8_t debounce = 10; // milliseconds to ignore changes in button state
 uint16_t pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
 float speed = 0.5;
 int dir = 1;
-bool wasAlreadyPressed = false;
-uint16_t buttonPressedAt = 0;
-uint16_t buttonReleasedAt = 0;
-bool debounceActive = false;
 uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
 uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 
@@ -40,51 +36,7 @@ void setup() {
   setFanSpeed(speed);  // Initialize the fan to the default speed
 }
 
-void loop() { // main loop interprets button presses, holds, double-clicks, etc.
-// I am also avoiding using any delays so this loop can run as many times per second as possible
-// this means debouncing needs to be taken care of with timers
-  now = millis();
-
-  if ((digitalRead(BUTTON_PIN)==0 || (debounceActive && now - buttonPressedAt < debounce)) &&
-                                    !(debounceActive && now - buttonReleasedAt < debounce)) { // button is depressed (poor button, get well soon)
-    if (wasAlreadyPressed == false) { // button was just pressed on this loop
-      wasAlreadyPressed = true;
-      debounceActive = true;
-      // buttonPressedAt = now; // we actually need to do this 1 step later so we can use the old value for 1 more check
-      if (now - buttonPressedAt < pressAndHoldTime) { // this is not the first click of this sequence
-        clicks += 1;
-        buttonPressedAt = now;
-        if (clicks == 255) { bullyUser(); } //ok come on, are you trying to break my shit?
-      }
-      else { // this is the first click of a new sequence
-        clicks = 1;
-        buttonPressedAt = now;
-      }
-    }
-    else { 
-      if (now - buttonPressedAt >= pressAndHoldTime) { // button is now being held down, this should trigger something
-        digitalWrite(LED_PIN, HIGH);
-      }
-    }
-  }
-  else { // button is not depressed
-    if (wasAlreadyPressed == true) { // button was just released this loop
-      wasAlreadyPressed = false;
-      debounceActive = true;
-      buttonReleasedAt = now;
-      if (now - buttonPressedAt >= pressAndHoldTime) { // button was just released after a hold, this should trigger something
-        clicks = 0;
-        digitalWrite(LED_PIN, LOW);
-      }
-    }
-    else if (now - buttonReleasedAt >= pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
-      blinkLED(clicks);
-      clicks = 0;
-    }
-    if (now - buttonReleasedAt >= debounce || now - buttonPressedAt >= debounce) { // if the state hasn't changed for [debounce] milliseconds
-      debounceActive = false;
-    }
-  }
+void loop() { 
 }
 
 void setFanSpeed(float pwm) {
