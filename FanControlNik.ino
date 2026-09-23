@@ -1,16 +1,16 @@
-const unsigned int PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
-const unsigned int BUTTON_PIN = 2;
-const unsigned int LED_PIN = 0;
+const uint8_t PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
+const uint8_t BUTTON_PIN = 2;
+const uint8_t LED_PIN = 0;
 static float min = 0.1;
-static unsigned int debounce = 10; // milliseconds to ignore changes in button state
-static unsigned int pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
+uint8_t debounce = 10; // milliseconds to ignore changes in button state
+uint16_t pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
 float speed = 0.5;
 int dir = 1;
 bool wasAlreadyPressed = false;
-unsigned long buttonPressedAt = 0;
-unsigned long buttonReleasedAt = 0;
-unsigned int clicks = 0;
-unsigned long now = 0;
+uint16_t buttonPressedAt = 0;
+uint16_t buttonReleasedAt = 0;
+uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
+uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 
 void setup() {
   pinMode(PWM_PIN, OUTPUT);
