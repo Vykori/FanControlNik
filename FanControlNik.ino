@@ -54,6 +54,7 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
       if (now - buttonPressedAt < pressAndHoldTime) { // this is not the first click of this sequence
         clicks += 1;
         buttonPressedAt = now;
+        if (clicks == 255) { bullyUser(); } //ok come on, are you trying to break my shit?
       }
       else { // this is the first click of a new sequence
         clicks = 1;
@@ -108,4 +109,13 @@ void blinkLED(int number) { // used for debugging
   digitalWrite(LED_PIN, HIGH);
   delay(10);
   digitalWrite(LED_PIN, LOW);
+}
+
+void bullyUser() { // call this function if you think the end user deserves punishment for something.
+  while(true){
+    digitalWrite(LED_PIN, HIGH);
+    delay(500);
+    digitalWrite(LED_PIN, LOW);
+    delay(500);
+  }
 }
