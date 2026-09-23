@@ -13,7 +13,6 @@ unsigned int clicks = 0;
 unsigned long now = 0;
 
 void setup() {
-  timer = millis();
   pinMode(PWM_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -45,11 +44,11 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
 // this means debouncing needs to be taken care of with timers
   now = millis();
 
-  if (digitalRead(BUTTON_PIN)==0 || buttonPressedAt > now - debounce) { // button is depressed (poor button, get well soon)
-    if (wasAlreadyPressed == false) { // button was just pressed on this cycle
+  if ((digitalRead(BUTTON_PIN)==0 || now - buttonPressedAt < debounce) && !(now - buttonReleasedAt < debounce)) { // button is depressed (poor button, get well soon)
+    if (wasAlreadyPressed == false) { // button was just pressed on this loop
       wasAlreadyPressed = true;
       // buttonPressedAt = now; // we actually need to do this 1 step later so we can use the old value for 1 more check
-      if (buttonPressedAt > now - pressAndHoldTime) { // this is a double/triple/quadruple click
+      if (now - buttonPressedAt < pressAndHoldTime) { // this is not the first click of this sequence
         clicks += 1;
         buttonPressedAt = now;
       }
@@ -59,21 +58,21 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
       }
     }
     else { 
-      if (buttonPressedAt < now - pressAndHoldTime) { // button is now being held down, this should trigger something
+      if (now - buttonPressedAt > pressAndHoldTime) { // button is now being held down, this should trigger something
         digitalWrite(LED_PIN, HIGH);
       }
     }
   }
-  else if (digitalRead(BUTTON_PIN)==1 || buttonReleasedAt > now - debounce) { // button is not depressed
-    if (wasAlreadyPressed == true) { // button was just released this cycle
+  else { // button is not depressed
+    if (wasAlreadyPressed == true) { // button was just released this loop
       wasAlreadyPressed = false;
       buttonReleasedAt = now;
-      if (buttonPressedAt < now - pressAndHoldTime) { // button was just released after a hold, this should trigger something
+      if (now - buttonPressedAt > pressAndHoldTime) { // button was just released after a hold, this should trigger something
         clicks = 0;
         digitalWrite(LED_PIN, LOW);
       }
     }
-    else if (buttonReleasedAt < now - pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
+    else if (now - buttonReleasedAt > pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
       blinkLED(clicks);
       clicks = 0;
     }
