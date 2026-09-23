@@ -61,8 +61,8 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
       }
     }
     else { 
-      if (buttonPressedAt > now - pressAndHoldTime) { // button is now being held down, this should trigger something
-
+      if (buttonPressedAt < now - pressAndHoldTime) { // button is now being held down, this should trigger something
+        digitalWrite(LED_PIN, HIGH);
       }
     }
   }
@@ -72,6 +72,7 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
       buttonReleasedAt = now;
       if (buttonPressedAt < now - pressAndHoldTime) { // button was just released after a hold, this should trigger something
         clicks = 0;
+        digitalWrite(LED_PIN, LOW);
       }
     }
     else if (buttonReleasedAt < now - pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
@@ -88,7 +89,11 @@ void setFanSpeed(float pwm) {
 }
 
 void blinkLED(int number) { // used for debugging
+  digitalWrite(LED_PIN, HIGH);
+  delay(10);
+  digitalWrite(LED_PIN, LOW);
   delay(250);
+  delay(125);
   for(int i = number; i > 0; i--) {
     digitalWrite(LED_PIN, HIGH);
     delay(125);
