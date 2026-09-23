@@ -93,7 +93,7 @@ void setFanSpeed(float pwm) {
   OCR1A = (pwm * 39);
 }
 
-void blinkLED(int number) { // used for debugging
+void blinkLED(uint8_t number) { // used for debugging
   digitalWrite(LED_PIN, HIGH);
   delay(10);
   digitalWrite(LED_PIN, LOW);
