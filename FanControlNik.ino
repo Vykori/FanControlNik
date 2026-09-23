@@ -10,8 +10,6 @@ bool wasAlreadyPressed = false;
 unsigned long buttonPressedAt = 0;
 unsigned long buttonReleasedAt = 0;
 unsigned int clicks = 0;
-unsigned long timer = 0;
-bool isHeld = 0;
 unsigned long now = 0;
 
 void setup() {
@@ -83,8 +81,8 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
 }
 
 void setFanSpeed(float pwm) {
-  constrain(pwm, 0.0, 1.0);
-  // Map onto the 0 to 39 Timer range for OCR0B
+  pwm = constrain(pwm, 0.0, 1.0);
+  // Map onto the 0 to 39 Timer range for OCR1A
   OCR1A = (pwm * 39);
 }
 
