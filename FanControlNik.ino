@@ -97,6 +97,6 @@ void blinkLED(int number) { // used for debugging
   }
   delay(250);
   digitalWrite(LED_PIN, HIGH);
-  delay(50);
+  delay(10);
   digitalWrite(LED_PIN, LOW);
 }
