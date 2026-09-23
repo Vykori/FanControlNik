@@ -46,7 +46,7 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
   now = millis();
 
   if ((digitalRead(BUTTON_PIN)==0 || (debounceActive && now - buttonPressedAt < debounce)) &&
-                                    (!debounceActive || !(now - buttonReleasedAt < debounce))) { // button is depressed (poor button, get well soon)
+                                    !(debounceActive && now - buttonReleasedAt < debounce)) { // button is depressed (poor button, get well soon)
     if (wasAlreadyPressed == false) { // button was just pressed on this loop
       wasAlreadyPressed = true;
       debounceActive = true;
