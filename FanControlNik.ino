@@ -9,6 +9,7 @@ int dir = 1;
 bool wasAlreadyPressed = false;
 uint16_t buttonPressedAt = 0;
 uint16_t buttonReleasedAt = 0;
+bool debounceActive = false;
 uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
 uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 
@@ -44,9 +45,11 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
 // this means debouncing needs to be taken care of with timers
   now = millis();
 
-  if ((digitalRead(BUTTON_PIN)==0 || now - buttonPressedAt < debounce) && !(now - buttonReleasedAt < debounce)) { // button is depressed (poor button, get well soon)
+  if ((digitalRead(BUTTON_PIN)==0 || (debounceActive && now - buttonPressedAt < debounce)) &&
+                                    (!debounceActive || !(now - buttonReleasedAt < debounce))) { // button is depressed (poor button, get well soon)
     if (wasAlreadyPressed == false) { // button was just pressed on this loop
       wasAlreadyPressed = true;
+      debounceActive = true;
       // buttonPressedAt = now; // we actually need to do this 1 step later so we can use the old value for 1 more check
       if (now - buttonPressedAt < pressAndHoldTime) { // this is not the first click of this sequence
         clicks += 1;
@@ -58,7 +61,7 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
       }
     }
     else { 
-      if (now - buttonPressedAt > pressAndHoldTime) { // button is now being held down, this should trigger something
+      if (now - buttonPressedAt >= pressAndHoldTime) { // button is now being held down, this should trigger something
         digitalWrite(LED_PIN, HIGH);
       }
     }
@@ -66,15 +69,19 @@ void loop() { // main loop interprets button presses, holds, double-clicks, etc.
   else { // button is not depressed
     if (wasAlreadyPressed == true) { // button was just released this loop
       wasAlreadyPressed = false;
+      debounceActive = true;
       buttonReleasedAt = now;
-      if (now - buttonPressedAt > pressAndHoldTime) { // button was just released after a hold, this should trigger something
+      if (now - buttonPressedAt >= pressAndHoldTime) { // button was just released after a hold, this should trigger something
         clicks = 0;
         digitalWrite(LED_PIN, LOW);
       }
     }
-    else if (now - buttonReleasedAt > pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
+    else if (now - buttonReleasedAt >= pressAndHoldTime && clicks > 0) { // user has stopped clicking, this should trigger something
       blinkLED(clicks);
       clicks = 0;
+    }
+    if (now - buttonReleasedAt >= debounce || now - buttonPressedAt >= debounce) { // if the state hasn't changed for [debounce] milliseconds
+      debounceActive = false;
     }
   }
 }
