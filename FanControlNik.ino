@@ -34,6 +34,9 @@ buttonState updateButtonState(buttonState state) {
   else if (state == PRESSED && !buttonIsDown) {
     return RELEASED;
   }
+  else if (state == HELD && !buttonIsDown) {
+    return IDLE;
+  }
   else if (state == RELEASED && buttonIsDown) {
     return PRESSED;
   }
