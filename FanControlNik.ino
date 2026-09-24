@@ -1,13 +1,56 @@
 const uint8_t PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const uint8_t BUTTON_PIN = 2;
 const uint8_t LED_PIN = 0;
-static float min = 0.1;
-uint8_t debounce = 10; // milliseconds to ignore changes in button state
-uint16_t pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
-float speed = 0.5;
-int dir = 1;
+const float minimumSpeed = 0.1; 
+      float speed = 0.5; //default speed for startup
+const uint8_t debounce = 10; // milliseconds to ignore changes in button state
+const uint16_t pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
+
+enum buttonState {
+  IDLE,         // button is up, hasn't been pressed in a bit
+  PRESSED,      // button is down, but not long enough to be held.
+  HELD,         // button has been held down. After a state is moved to "HELD", once physical button is released it will go straight back to IDLE.
+  RELEASED,     // button is up, but it was first pushed less than pressAndHoldTime ago, so another click might be coming.
+};
+
 uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
 uint8_t clicks = 0; //similarly, don't click the button more than 255 times
+bool buttonIsDown = false;
+uint16_t buttonPressedAt = 0;
+
+buttonState updateButtonState(buttonState state) {
+  now = millis();
+  if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
+  else { buttonIsDown = false; }
+
+  if (state == IDLE && buttonIsDown) {
+    buttonPressedAt = now;
+    clicks++;
+    return PRESSED;
+  }
+  else if (state == PRESSED && now - buttonPressedAt >= pressAndHoldTime && buttonIsDown) {
+    return HELD;
+  }
+  else if (state == PRESSED && !buttonIsDown) {
+    return RELEASED;
+  }
+  else if (state == RELEASED && buttonIsDown) {
+    return PRESSED;
+  }
+  else if (state == RELEASED && !buttonIsDown && buttonPressedAt >= pressAndHoldTime ) {
+    return IDLE;
+  }
+}
+
+enum Mode {
+  NORMAL,
+};
+Mode currentMode = NORMAL;
+
+int dir = 1;
+buttonState state = IDLE;
+buttonState lastState = IDLE;
+
 
 void setup() {
   pinMode(PWM_PIN, OUTPUT);
@@ -37,10 +80,21 @@ void setup() {
 }
 
 void loop() { 
+  lastState = state;
+  state = updateButtonState(state);
+
+  if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
+    if (lastState == PRESSED && state == RELEASED) {
+      blinkLED(clicks);
+    }
+  }
+
+  delay(debounce); //TODO: do it for real, in a non-blocking way
+
 }
 
 void setFanSpeed(float pwm) {
-  pwm = constrain(pwm, 0.0, 1.0);
+  pwm = constrain(pwm, minimumSpeed, 1.0);
   // Map onto the 0 to 39 Timer range for OCR1A
   OCR1A = (pwm * 39);
 }
