@@ -18,37 +18,10 @@ uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 bool buttonIsDown = false;
 uint16_t buttonPressedAt = 0;
 
-buttonState updateButtonState(buttonState state) {
-  now = millis();
-  if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
-  else { buttonIsDown = false; }
-
-  if (state == IDLE && buttonIsDown) {
-    buttonPressedAt = now;
-    clicks++;
-    return PRESSED;
-  }
-  else if (state == PRESSED && now - buttonPressedAt >= pressAndHoldTime && buttonIsDown) {
-    return HELD;
-  }
-  else if (state == PRESSED && !buttonIsDown) {
-    return RELEASED;
-  }
-  else if (state == HELD && !buttonIsDown) {
-    return IDLE;
-  }
-  else if (state == RELEASED && buttonIsDown) {
-    return PRESSED;
-  }
-  else if (state == RELEASED && !buttonIsDown && buttonPressedAt >= pressAndHoldTime ) {
-    return IDLE;
-  }
-}
-
-enum Mode {
-  NORMAL,
-};
-Mode currentMode = NORMAL;
+// enum Mode {
+//   NORMAL,
+// };
+// Mode currentMode = NORMAL;
 
 int dir = 1;
 buttonState state = IDLE;
@@ -83,17 +56,57 @@ void setup() {
 }
 
 void loop() { 
+
   lastState = state;
   state = updateButtonState(state);
 
-  if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
-    if (lastState == PRESSED && state == RELEASED) {
+//  if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
+    if (lastState == RELEASED && state == IDLE) {
       blinkLED(clicks);
     }
+//  }
+
+  if (state == HELD) {
+    digitalWrite(LED_PIN, HIGH);
+  }
+  else if (state == IDLE) {
+    digitalWrite(LED_PIN, LOW);
   }
 
   delay(debounce); //TODO: do it for real, in a non-blocking way
 
+}
+
+buttonState updateButtonState(buttonState state) {
+  now = millis();
+  if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
+  else { buttonIsDown = false; }
+
+  if (state == IDLE && buttonIsDown) {
+    buttonPressedAt = now;
+    clicks++;
+    return PRESSED;
+  }
+  else if (state == PRESSED && now - buttonPressedAt >= pressAndHoldTime && buttonIsDown) {
+    return HELD;
+  }
+  else if (state == PRESSED && !buttonIsDown) {
+    return RELEASED;
+  }
+  else if (state == HELD && !buttonIsDown) {
+    clicks = 0;
+    return IDLE;
+  }
+  else if (state == RELEASED && buttonIsDown) {
+    buttonPressedAt = now;
+    return PRESSED;
+  }
+  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) {
+    clicks = 0;
+    return IDLE;
+  }
+
+  return state; // state didn't change
 }
 
 void setFanSpeed(float pwm) {
