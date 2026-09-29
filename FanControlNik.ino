@@ -4,8 +4,8 @@ const uint8_t LED_PIN = 0;
 const float minimumSpeed = 0.1; //minimum fan speed that doesn't cause issues. TODO: add a method to adjust this at runtime with the button
       float speed = 0.5; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
-const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
-// TODO: consider separating pressAndHoldTime and doubleClickTime into 2 vars instead of 1
+const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold
+const uint16_t doubleClickTime = pressAndHoldTime; // miliseconds between two down-strokes to consider 2 clicks as a double-click
 
 enum buttonState {
   IDLE,         // button is up, hasn't been pressed in a bit
@@ -96,7 +96,7 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = true;
     return PRESSED;
   }
-  else if (state == PRESSED && now - buttonPressedAt >= pressAndHoldTime && buttonIsDown) {
+  else if (state == PRESSED && buttonIsDown && now - buttonPressedAt >= pressAndHoldTime) {
     return HELD;
   }
   else if (state == PRESSED && !buttonIsDown && !debouncingActive) {
@@ -109,7 +109,7 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = true;
     return IDLE;
   }
-  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) { // TODO: consider pros and cons of using buttonReleasedAt instead, which would require different timings
+  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= doubleClickTime ) { // TODO: consider pros and cons of using buttonReleasedAt instead, which would require different timings
     return IDLE;
   }
 
