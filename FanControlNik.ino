@@ -84,12 +84,15 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = false; // this method of debouncing is a little hard to follow but doesn't require an extra timer
   }
 
-  if (state == IDLE && !buttonIsDown) {
-    clicks = 0; //TODO: ideally I'd prefer to find a different place to set clicks to 0 where it doesn't run constantly...
-  }
-  else if ((state == IDLE || state == RELEASED) && buttonIsDown && !debouncingActive) {
+  if (state == IDLE && buttonIsDown && !debouncingActive) {
     buttonPressedAt = now;
-    clicks++;
+    clicks = 1; // start of a new click sequence.
+    debouncingActive = true;
+    return PRESSED;
+  }
+  else if (state == RELEASED && buttonIsDown && !debouncingActive) {
+    buttonPressedAt = now;
+    clicks += 1;
     debouncingActive = true;
     return PRESSED;
   }
