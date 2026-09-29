@@ -17,6 +17,8 @@ uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the
 uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 bool buttonIsDown = false;
 uint16_t buttonPressedAt = 0;
+uint16_t buttonReleasedAt = 0;
+bool debouncingActive = false; // if true, ignore button state changes until it is false again
 
 enum mode {
   NORMAL,
@@ -73,40 +75,41 @@ void loop() {
     digitalWrite(LED_PIN, LOW);
   }
 
-  delay(debounce); //TODO: do it for real, in a non-blocking way
-
 }
 
 buttonState updateButtonState(buttonState state) {
   now = millis();
+
   if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
   else { buttonIsDown = false; }
+
+  if (debouncingActive && now - buttonPressedAt >= debounce && now - buttonReleasedAt >= debounce) {
+    debouncingActive = false;
+  }
 
   if (state == IDLE && !buttonIsDown) {
     clicks = 0; // ideally I'd prefer to find a different place to set clicks to 0 where it doesn't run constantly...
   }
-  else if (state == IDLE && buttonIsDown) {
+  else if ((state == IDLE || state == RELEASED) && buttonIsDown && !debouncingActive) {
     buttonPressedAt = now;
     clicks++;
+    debouncingActive = true;
     return PRESSED;
   }
   else if (state == PRESSED && now - buttonPressedAt >= pressAndHoldTime && buttonIsDown) {
     return HELD;
   }
-  else if (state == PRESSED && !buttonIsDown) {
+  else if (state == PRESSED && !buttonIsDown && !debouncingActive) {
+    buttonReleasedAt = now;
+    debouncingActive = true;
     return RELEASED;
   }
-  else if (state == HELD && !buttonIsDown) {
-    // clicks = 0;
+  else if (state == HELD && !buttonIsDown && !debouncingActive) {
+    buttonReleasedAt = now;
+    debouncingActive = true;
     return IDLE;
   }
-  else if (state == RELEASED && buttonIsDown) {
-    buttonPressedAt = now;
-    clicks++;
-    return PRESSED;
-  }
   else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) {
-    // clicks = 0;
     return IDLE;
   }
 
