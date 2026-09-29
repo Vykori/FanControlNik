@@ -5,13 +5,13 @@ const float minimumSpeed = 0.1; //minimum fan speed that doesn't cause issues. T
       float speed = 0.5; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold
-const uint16_t doubleClickTime = pressAndHoldTime; // miliseconds between two down-strokes to consider 2 clicks as a double-click
+const uint16_t doubleClickTime = 300; // on button release, miliseconds to wait for another click
 
 enum buttonState {
   IDLE,         // button is up, hasn't been pressed in a bit
   PRESSED,      // button is down, but not long enough to be held.
   HELD,         // button has been held down. After a state is moved to "HELD", once physical button is released it will go straight back to IDLE.
-  RELEASED,     // button is up, but it was first pushed less than pressAndHoldTime ago, so another click might be coming.
+  RELEASED,     // button is up, but still waiting in case another click might be coming.
 };
 
 enum mode {
@@ -109,7 +109,7 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = true;
     return IDLE;
   }
-  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= doubleClickTime ) { // TODO: consider pros and cons of using buttonReleasedAt instead, which would require different timings
+  else if (state == RELEASED && !buttonIsDown && now - buttonReleasedAt >= doubleClickTime ) {
     return IDLE;
   }
 
