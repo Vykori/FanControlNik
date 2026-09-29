@@ -7,14 +7,14 @@ const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold
 const uint16_t doubleClickTime = 300; // on button release, miliseconds to wait for another click
 
-enum buttonState {
+enum ButtonState {
   IDLE,         // button is up, hasn't been pressed in a bit
   PRESSED,      // button is down, but not long enough to be held.
   HELD,         // button has been held down. After a state is moved to "HELD", once physical button is released it will go straight back to IDLE.
-  RELEASED,     // button is up, but still waiting in case another click might be coming.
+  WAITING,      // button is up, but still waiting in case another click might be coming.
 };
 
-enum mode {
+enum Mode {
   NORMAL,
 };
 
@@ -24,10 +24,10 @@ uint16_t buttonPressedAt = 0;
 uint16_t buttonReleasedAt = 0;
 bool debouncingActive = false; // if true, ignore button state changes until it is false again
 
-mode currentMode = NORMAL;
+Mode currentMode = NORMAL;
 
-buttonState state = IDLE;
-buttonState lastState = IDLE;
+ButtonState state = IDLE;
+ButtonState lastState = IDLE;
 
 void setup() {
   pinMode(PWM_PIN, OUTPUT);
@@ -62,7 +62,7 @@ void loop() {
   state = updateButtonState(state);
 
   if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
-    if (lastState == RELEASED && state == IDLE) {
+    if (lastState == WAITING && state == IDLE) {
       blinkLED(clicks);
     }
     else if (state == HELD) {
@@ -74,10 +74,10 @@ void loop() {
   }
 }
 
-buttonState updateButtonState(buttonState state) {
+ButtonState updateButtonState(ButtonState state) {
   uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds before rollover, which is plenty as long as I don't implement a behavior triggered on holding the button for a really long time.
 
-  if (digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
+  if (digitalRead(BUTTON_PIN) == LOW) { buttonIsDown = true; }
   else { buttonIsDown = false; }
 
   if (debouncingActive && now - buttonPressedAt >= debounce && now - buttonReleasedAt >= debounce) {
@@ -90,7 +90,7 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = true;
     return PRESSED;
   }
-  else if (state == RELEASED && buttonIsDown && !debouncingActive) {
+  else if (state == WAITING && buttonIsDown && !debouncingActive) {
     buttonPressedAt = now;
     clicks += 1;
     debouncingActive = true;
@@ -102,14 +102,14 @@ buttonState updateButtonState(buttonState state) {
   else if (state == PRESSED && !buttonIsDown && !debouncingActive) {
     buttonReleasedAt = now;
     debouncingActive = true;
-    return RELEASED;
+    return WAITING;
   }
   else if (state == HELD && !buttonIsDown && !debouncingActive) {
     buttonReleasedAt = now;
     debouncingActive = true;
     return IDLE;
   }
-  else if (state == RELEASED && !buttonIsDown && now - buttonReleasedAt >= doubleClickTime ) {
+  else if (state == WAITING && !buttonIsDown && now - buttonReleasedAt >= doubleClickTime ) {
     return IDLE;
   }
 
