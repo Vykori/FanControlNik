@@ -18,10 +18,10 @@ uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 bool buttonIsDown = false;
 uint16_t buttonPressedAt = 0;
 
-// enum Mode {
-//   NORMAL,
-// };
-// Mode currentMode = NORMAL;
+enum mode {
+  NORMAL,
+};
+mode currentMode = NORMAL;
 
 int dir = 1;
 buttonState state = IDLE;
@@ -60,11 +60,11 @@ void loop() {
   lastState = state;
   state = updateButtonState(state);
 
-//  if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
+ if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
     if (lastState == RELEASED && state == IDLE) {
       blinkLED(clicks);
     }
-//  }
+ }
 
   if (state == HELD) {
     digitalWrite(LED_PIN, HIGH);
