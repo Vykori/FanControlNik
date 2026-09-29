@@ -82,7 +82,10 @@ buttonState updateButtonState(buttonState state) {
   if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
   else { buttonIsDown = false; }
 
-  if (state == IDLE && buttonIsDown) {
+  if (state == IDLE && !buttonIsDown) {
+    clicks = 0; // ideally I'd prefer to find a different place to set clicks to 0 where it doesn't run constantly...
+  }
+  else if (state == IDLE && buttonIsDown) {
     buttonPressedAt = now;
     clicks++;
     return PRESSED;
@@ -94,19 +97,20 @@ buttonState updateButtonState(buttonState state) {
     return RELEASED;
   }
   else if (state == HELD && !buttonIsDown) {
-    clicks = 0;
+    // clicks = 0;
     return IDLE;
   }
   else if (state == RELEASED && buttonIsDown) {
     buttonPressedAt = now;
+    clicks++;
     return PRESSED;
   }
   else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) {
-    clicks = 0;
+    // clicks = 0;
     return IDLE;
   }
 
-  return state; // state didn't change
+  return state; // state didn't change, nothing to do.
 }
 
 void setFanSpeed(float pwm) {
