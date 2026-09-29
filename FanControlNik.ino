@@ -1,8 +1,8 @@
 const uint8_t PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const uint8_t BUTTON_PIN = 2;
 const uint8_t LED_PIN = 0;
-const float minimumSpeed = 0.1; //minimum fan speed that doesn't cause issues. TODO: add a method to adjust this at runtime with the button
-      float speed = 0.5; //default speed for startup
+const uint8_t minimumSpeed = 25; //minimum fan speed that doesn't cause issues. TODO: add a method to adjust this at runtime with the button
+      uint8_t speed = 127; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold
 const uint16_t doubleClickTime = 300; // on button release, miliseconds to wait for another click
@@ -116,10 +116,10 @@ ButtonState updateButtonState(ButtonState state) {
   return state; // state didn't change, nothing to do.
 }
 
-void setFanSpeed(float pwm) {
-  pwm = constrain(pwm, minimumSpeed, 1.0);
+void setFanSpeed(uint8_t pwm) {
   // Map onto the 0 to 39 Timer range for OCR1A
-  OCR1A = static_cast<uint8_t>(pwm * 39);
+  // OCR1A = static_cast<uint8_t>(static_cast<float>(pwm) / 255 * 39);
+  OCR1A = (static_cast<uint16_t>(pwm) * 39) / 255; //this method avoids floats and gives same result
 }
 
 void blinkLED(uint8_t number) { // used for debugging
