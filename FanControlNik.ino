@@ -5,6 +5,7 @@ const float minimumSpeed = 0.1; //minimum fan speed that doesn't cause issues. T
       float speed = 0.5; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
+// TODO: consider separating pressAndHoldTime and doubleClickTime into 2 vars instead of 1
 
 enum buttonState {
   IDLE,         // button is up, hasn't been pressed in a bit
@@ -74,13 +75,13 @@ void loop() {
 }
 
 buttonState updateButtonState(buttonState state) {
-  uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
+  uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds before rollover, which is plenty as long as I don't implement a behavior triggered on holding the button for a really long time.
 
   if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
   else { buttonIsDown = false; }
 
   if (debouncingActive && now - buttonPressedAt >= debounce && now - buttonReleasedAt >= debounce) {
-    debouncingActive = false;
+    debouncingActive = false; // this method of debouncing is a little hard to follow but doesn't require an extra timer
   }
 
   if (state == IDLE && !buttonIsDown) {
@@ -105,7 +106,7 @@ buttonState updateButtonState(buttonState state) {
     debouncingActive = true;
     return IDLE;
   }
-  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) {
+  else if (state == RELEASED && !buttonIsDown && now - buttonPressedAt >= pressAndHoldTime ) { // TODO: consider pros and cons of using buttonReleasedAt instead, which would require different timings
     return IDLE;
   }
 
@@ -115,7 +116,7 @@ buttonState updateButtonState(buttonState state) {
 void setFanSpeed(float pwm) {
   pwm = constrain(pwm, minimumSpeed, 1.0);
   // Map onto the 0 to 39 Timer range for OCR1A
-  OCR1A = (pwm * 39);
+  OCR1A = static_cast<uint8_t>(pwm * 39);
 }
 
 void blinkLED(uint8_t number) { // used for debugging
