@@ -127,21 +127,12 @@ void blinkLED(uint8_t number) { // used for debugging
   delay(125);
   for(; number > 0; number--) {
     digitalWrite(LED_PIN, HIGH);
-    delay(125);
+    delay(100);
     digitalWrite(LED_PIN, LOW);
-    delay(125);
+    delay(150);
   }
   delay(250);
   digitalWrite(LED_PIN, HIGH);
   delay(10);
   digitalWrite(LED_PIN, LOW);
-}
-
-void bullyUser() { // call this function if you think the end user deserves punishment for something.
-  while(true){
-    digitalWrite(LED_PIN, HIGH);
-    delay(500);
-    digitalWrite(LED_PIN, LOW);
-    delay(500);
-  }
 }
