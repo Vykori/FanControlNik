@@ -1,7 +1,7 @@
 const uint8_t PWM_PIN = 1; // Pin 1 corresponds to PB1 (Physical Pin 6)
 const uint8_t BUTTON_PIN = 2;
 const uint8_t LED_PIN = 0;
-const float minimumSpeed = 0.1; 
+const float minimumSpeed = 0.1; //minimum fan speed that doesn't cause issues. TODO: add a method to adjust this at runtime with the button
       float speed = 0.5; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
@@ -13,22 +13,20 @@ enum buttonState {
   RELEASED,     // button is up, but it was first pushed less than pressAndHoldTime ago, so another click might be coming.
 };
 
-uint16_t now = 0; //I will be casting millis() to this vavlue, 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
+enum mode {
+  NORMAL,
+};
+
 uint8_t clicks = 0; //similarly, don't click the button more than 255 times
 bool buttonIsDown = false;
 uint16_t buttonPressedAt = 0;
 uint16_t buttonReleasedAt = 0;
 bool debouncingActive = false; // if true, ignore button state changes until it is false again
 
-enum mode {
-  NORMAL,
-};
 mode currentMode = NORMAL;
 
-int dir = 1;
 buttonState state = IDLE;
 buttonState lastState = IDLE;
-
 
 void setup() {
   pinMode(PWM_PIN, OUTPUT);
@@ -62,23 +60,21 @@ void loop() {
   lastState = state;
   state = updateButtonState(state);
 
- if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
+  if (currentMode == NORMAL) { // as of writing, NORMAL is the only mode that is used (or even exists) but I'll probably forget to remove this comment when that is no longer true
     if (lastState == RELEASED && state == IDLE) {
       blinkLED(clicks);
     }
- }
-
-  if (state == HELD) {
-    digitalWrite(LED_PIN, HIGH);
+    else if (state == HELD) {
+      digitalWrite(LED_PIN, HIGH);
+    }
+    else if (state == IDLE) {
+      digitalWrite(LED_PIN, LOW);
+    }
   }
-  else if (state == IDLE) {
-    digitalWrite(LED_PIN, LOW);
-  }
-
 }
 
 buttonState updateButtonState(buttonState state) {
-  now = millis();
+  uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds, so uhh, don't hold the button for over a minute and expect it to work I guess
 
   if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
   else { buttonIsDown = false; }
@@ -88,7 +84,7 @@ buttonState updateButtonState(buttonState state) {
   }
 
   if (state == IDLE && !buttonIsDown) {
-    clicks = 0; // ideally I'd prefer to find a different place to set clicks to 0 where it doesn't run constantly...
+    clicks = 0; //TODO: ideally I'd prefer to find a different place to set clicks to 0 where it doesn't run constantly...
   }
   else if ((state == IDLE || state == RELEASED) && buttonIsDown && !debouncingActive) {
     buttonPressedAt = now;
@@ -124,7 +120,7 @@ void setFanSpeed(float pwm) {
 
 void blinkLED(uint8_t number) { // used for debugging
   digitalWrite(LED_PIN, HIGH);
-  delay(10);
+  delay(2);
   digitalWrite(LED_PIN, LOW);
   delay(250);
   delay(125);
@@ -136,6 +132,6 @@ void blinkLED(uint8_t number) { // used for debugging
   }
   delay(250);
   digitalWrite(LED_PIN, HIGH);
-  delay(10);
+  delay(2);
   digitalWrite(LED_PIN, LOW);
 }
