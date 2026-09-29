@@ -18,7 +18,7 @@ enum mode {
   NORMAL,
 };
 
-uint8_t clicks = 0; //similarly, don't click the button more than 255 times
+uint8_t clicks = 0; // quantity of button presses within 1 click sequence. reminder not to implement a behavior that requires more than 255 button presses, because this will overflow, and also that is not very user friendly...!
 bool buttonIsDown = false;
 uint16_t buttonPressedAt = 0;
 uint16_t buttonReleasedAt = 0;
@@ -77,7 +77,7 @@ void loop() {
 buttonState updateButtonState(buttonState state) {
   uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds before rollover, which is plenty as long as I don't implement a behavior triggered on holding the button for a really long time.
 
-  if ( digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
+  if (digitalRead(BUTTON_PIN) == 0) { buttonIsDown = true; }
   else { buttonIsDown = false; }
 
   if (debouncingActive && now - buttonPressedAt >= debounce && now - buttonReleasedAt >= debounce) {
