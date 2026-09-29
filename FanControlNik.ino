@@ -4,7 +4,7 @@ const uint8_t LED_PIN = 0;
 const float minimumSpeed = 0.1; 
       float speed = 0.5; //default speed for startup
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
-const uint16_t pressAndHoldTime = 300; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
+const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold, and also the miliseconds between two down-strokes to consider 2 clicks as a double-click
 
 enum buttonState {
   IDLE,         // button is up, hasn't been pressed in a bit
