@@ -40,23 +40,24 @@ void setup() {
   digitalWrite(LED_PIN, LOW);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  //next we need to change some register values so the PWM frequency we provide to the fan is the expected ~25kHz
-  //bruh idk how any of this bullshit works lmao
-  // --- Configure Timer 1 for 25kHz PWM on PB1 (Channel A) ---
-  TCCR1 = 0; // Reset registers
+  // Timer setup for PWM output
+  // our target is 25khz https://www.noctua.at/en/support/faqs/microcontroller-guide-pwm-setup-and-rpm-monitoring#implementing-pwm-control
+  // we should enable the PLL fast peripheral clock, which is 64MHz. Then put Timer/Counter1 into asynchronous mode, so it will use the peripheral clock we just enabled.
+  // According to the datasheet https://ww1.microchip.com/downloads/en/devicedoc/atmel-2586-avr-8-bit-microcontroller-attiny25-attiny45-attiny85_datasheet.pdf
+  // 12.2.1 "To set Timer/Counter1 in asynchronous mode first enable PLL and then wait 100 μs for PLL to stabilize. Next, poll the PLOCK bit until it is set and then set the PCKE bit."
+  
+  PLLCSR |= (1 << PLLE); // Enable PLL
+  delay(2); // wait at least 100 μs. this is overkill lol
+  while (!(PLLCSR & (1 << PLOCK))); // poll the PLOCK bit until it is set
+  PLLCSR |= (1 << PCKE); // set the PCKE bit
+
+  // ok now we need to set our desired PWM frequency using the new 64MHz clock
+  // 64MHz / 16 (prescaler) / 160 (TOP) = 25KHz
+  TCCR1 = 0; // reset the "Timer/Counter Control Register" registers
   GTCCR = 0;
-  // 1. Set Prescaler to 8 (CS12=0, CS11=1, CS10=1)
-  // 8,000,000 Hz / 8 = 1,000,000 Hz timer clock
-  TCCR1 |= (1 << CS11) | (1 << CS10);
-  // 2. Set TOP value in OCR1C to control the frequency
-  // 1,000,000 Hz / 25,000 Hz = 40 counts (0 to 39)
-  OCR1C = 39; 
-  // 3. Enable PWM on Compare Match A (PB1 / Pin 6)
-  // PWM1A enables PWM mode for comparator A
-  // COM1A1 enables cleared-on-compare-match (non-inverted) behavior
-  TCCR1 |= (1 << PWM1A) | (1 << COM1A1);
-  // 4. Initialize duty cycle to 0 (Off)
-  OCR1A = 0; 
+  TCCR1 |= (1 << CS12) | (1 << CS10); // set prescaler to divide clock by 16. Datasheet Table 12-5
+  OCR1C = 159; // this is the TOP value. counter will reset after reaching 159, which takes 160 iterations. this lets us set PWM output on OCR1A to be 0-159
+  TCCR1 |= (1 << PWM1A) | (1 << COM1A1); // PWM1A enables PWM mode for comparator A, and COM1A1 enables cleared-on-compare-match (non-inverted) behavior
 
   redistributeSpeeds();
   setFanSpeed(speed);
