@@ -4,7 +4,10 @@ const uint8_t LED_PIN = 0;
 const uint8_t debounce = 10; // milliseconds to ignore changes in button state
 const uint16_t pressAndHoldTime = 500; // milliseconds you have to hold the button to register as a hold
 const uint16_t doubleClickTime = 300; // on button release, miliseconds to wait for another click
-const uint8_t incrementDelay = (float)5000/255; // milliseconds between incrementing speed during slow speed adjustment
+      uint8_t speeds[4] = {51, 0, 0, 255}; // first value defines minimum speed, last value defines maximum speed, the rest are dynamically corrected to be equal increments
+      uint8_t speed = speeds[0]; //default speed for startup
+const uint16_t totalSpeedSweepTime = 5000; //only used for calculating incrementDelay.
+const uint8_t incrementDelay = totalSpeedSweepTime / (speeds[(sizeof(speeds) / sizeof(speeds[0])) - 1] - speeds[0]); // milliseconds between incrementing speed during slow speed adjustment. Since it's rounded to the nearest millisecond, won't be exact.
 
 enum ButtonState {
   IDLE,         // button is up, hasn't been pressed in a bit
@@ -29,10 +32,7 @@ Mode currentMode = NORMAL;
 ButtonState state = IDLE;
 ButtonState lastState = IDLE;
 
-uint8_t speeds[4] = {25, 0, 0, 255}; // first value defines minimum speed, last value defines maximum speed, the rest are dynamically corrected to be equal increments
-uint8_t speed = speeds[0]; //default speed for startup
-
-uint16_t now = millis(); // 16 bits means the highest value is 65.535 seconds before rollover, which is plenty, as long as I don't implement a behavior triggered on holding the button for a really long time.
+uint16_t now = 0; // I will be saving millis() to this variable. using a uint16_t means the highest value is 65.535 seconds before rollover, which is plenty, as long as I don't implement a behavior triggered on holding the button for a really long time.
 
 void setup() {
   pinMode(PWM_PIN, OUTPUT);
@@ -171,7 +171,7 @@ ButtonState updateButtonState(ButtonState state) {
 }
 
 void setFanSpeed(uint8_t pwm) {
-  // Map onto the 0 to 39 Timer range for OCR1A
+  // Map onto the limited timer range
   // OCR1A = static_cast<uint8_t>(static_cast<float>(pwm) / 255 * OCR1C);
   OCR1A = (static_cast<uint16_t>(pwm) * OCR1C) / 255; //this method avoids floats and gives same result
 }
@@ -182,7 +182,7 @@ void redistributeSpeeds() {
   uint8_t max = speeds[increments - 1];
 
   for (uint8_t i = 1; i < increments - 1; i++) { // iterate through all elements of speeds[] except the first and the last
-    speeds[i] = (((max - min) / (increments-1)) * i) + min; // evenly space all increments (the math theoretically work for first and last, too)
+    speeds[i] = (((max - min) / (increments-1)) * i) + min; // evenly(enough) space apart all increments (the math theoretically work for first and last, too)
   }
 }
 
